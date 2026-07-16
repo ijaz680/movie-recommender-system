@@ -9,3 +9,12 @@ wheels/
 # Virtual environments
 .venv
 myvenv
+
+# Data files
+dataset/
+movies.csv
+
+# Local config
+.python-version
+.streamlit/
+uv.lock

@@ -1,12 +1,8 @@
+import os
 import pandas as pd
 import streamlit as st
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-
-# ---------------------------
-# Config
-# ---------------------------
-DATA_PATH = r"E:\All DataSets\movies.csv"
 
 # ---------------------------
 # Page Config
@@ -15,295 +11,135 @@ st.set_page_config(
     page_title="Movie Recommender",
     page_icon="🎬",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 # ---------------------------
-# Cinematic CSS
+# Custom CSS
 # ---------------------------
 st.markdown(
     """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap');
 
-/* ── Global ── */
-.stApp {
-    font-family: 'Inter', sans-serif;
-    background: linear-gradient(180deg, #0a0a0a 0%, #0f0f1a 50%, #0a0a0a 100%);
-    color: #e5e5e5;
-}
+* { font-family: 'DM Sans', sans-serif; }
 
-/* ── Hide default elements ── */
 #MainMenu, footer, header {visibility: hidden;}
 .stDeployButton {display: none;}
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar {width: 6px;}
-::-webkit-scrollbar-track {background: #0a0a0a;}
-::-webkit-scrollbar-thumb {background: #333; border-radius: 3px;}
-::-webkit-scrollbar-thumb:hover {background: #555;}
-
-/* ── Hero Banner ── */
-.hero {
-    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 40%, #16213e 70%, #0a0a0a 100%);
-    border-radius: 16px;
-    padding: 3rem 2.5rem;
-    margin-bottom: 2rem;
-    position: relative;
-    overflow: hidden;
-    border: 1px solid rgba(229, 9, 20, 0.15);
+/* ── Metric Cards ── */
+.metric-card {
+    background: #ffffff;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 1.2rem 1.5rem;
+    text-align: center;
 }
-.hero::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -20%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(229, 9, 20, 0.08) 0%, transparent 70%);
-    border-radius: 50%;
+.metric-card .label {
+    font-size: 0.75rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
 }
-.hero::after {
-    content: '';
-    position: absolute;
-    bottom: -30%;
-    left: -10%;
-    width: 400px;
-    height: 400px;
-    background: radial-gradient(circle, rgba(245, 197, 24, 0.05) 0%, transparent 70%);
-    border-radius: 50%;
+.metric-card .value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0.25rem 0;
 }
-.hero h1 {
-    font-size: 3rem !important;
-    font-weight: 900 !important;
-    background: linear-gradient(135deg, #ffffff 0%, #e5e5e5 50%, #f5c518 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 0.3rem !important;
-    letter-spacing: -1px;
-}
-.hero p {
-    font-size: 1.15rem !important;
-    color: #888 !important;
-    font-weight: 300 !important;
-    margin-bottom: 0 !important;
-}
-.hero .accent {
-    color: #e50914;
-    font-weight: 600;
+.metric-card .sub {
+    font-size: 0.8rem;
+    color: #aaa;
 }
 
-/* ── Search Section ── */
-.search-section {
-    background: rgba(26, 26, 46, 0.6);
-    border: 1px solid rgba(229, 9, 20, 0.2);
+/* ── Movie Result Card ── */
+.result-card {
+    background: #fff;
+    border: 1px solid #eee;
     border-radius: 12px;
     padding: 1.5rem;
-    margin-bottom: 2rem;
-    backdrop-filter: blur(10px);
-}
-
-/* ── Section Headers ── */
-.section-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-}
-.section-header h2 {
-    font-size: 1.6rem !important;
-    font-weight: 700 !important;
-    color: #ffffff !important;
-    margin: 0 !important;
-}
-.section-header .line {
-    flex: 1;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(229, 9, 20, 0.5) 0%, transparent 100%);
-}
-.section-header .count {
-    background: rgba(229, 9, 20, 0.15);
-    color: #e50914;
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-/* ── Movie Cards ── */
-.movie-card {
-    background: linear-gradient(145deg, #141422 0%, #1a1a2e 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
-    padding: 1.5rem;
     margin-bottom: 1rem;
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    position: relative;
-    overflow: hidden;
-    height: 100%;
+    transition: box-shadow 0.2s;
 }
-.movie-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, #e50914, #f5c518);
-    opacity: 0;
-    transition: opacity 0.35s ease;
+.result-card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
 }
-.movie-card:hover {
-    transform: translateY(-6px);
-    border-color: rgba(229, 9, 20, 0.3);
-    box-shadow: 0 12px 40px rgba(229, 9, 20, 0.12), 0 4px 15px rgba(0, 0, 0, 0.4);
-}
-.movie-card:hover::before {
-    opacity: 1;
-}
-.movie-card .title {
-    font-size: 1.05rem;
+.result-card .rank-badge {
+    display: inline-block;
+    background: #1a1a2e;
+    color: #fff;
+    font-size: 0.7rem;
     font-weight: 700;
-    color: #ffffff;
-    margin-bottom: 0.6rem;
-    line-height: 1.3;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
 }
-.movie-card .score-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    background: linear-gradient(135deg, rgba(229, 9, 20, 0.2), rgba(245, 197, 24, 0.15));
-    color: #f5c518;
-    padding: 0.3rem 0.7rem;
-    border-radius: 8px;
-    font-size: 0.8rem;
+.result-card .movie-title {
+    font-size: 1.1rem;
     font-weight: 700;
-    border: 1px solid rgba(245, 197, 24, 0.2);
+    color: #1a1a2e;
+    margin: 0.3rem 0;
 }
-.movie-card .genres {
+.result-card .genre-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem;
-    margin-top: 0.7rem;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
 }
-.movie-card .genre-tag {
-    background: rgba(255, 255, 255, 0.06);
-    color: #aaa;
-    padding: 0.2rem 0.55rem;
+.result-card .chip {
+    background: #f0f0f5;
+    color: #555;
+    padding: 0.2rem 0.5rem;
     border-radius: 6px;
     font-size: 0.7rem;
     font-weight: 500;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-.movie-card .rank {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    font-size: 2rem;
-    font-weight: 900;
-    color: rgba(229, 9, 20, 0.12);
-    line-height: 1;
 }
 
-/* ── Selected Movie Highlight ── */
-.selected-movie {
-    background: linear-gradient(135deg, rgba(229, 9, 20, 0.1), rgba(26, 26, 46, 0.8));
-    border: 1px solid rgba(229, 9, 20, 0.3);
-    border-radius: 14px;
-    padding: 1.5rem 2rem;
-    margin-bottom: 2rem;
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
+/* ── Score Bar ── */
+.score-bar-bg {
+    background: #eee;
+    border-radius: 6px;
+    height: 8px;
+    width: 100%;
+    margin-top: 0.6rem;
 }
-.selected-movie .icon {
-    font-size: 3rem;
-    filter: drop-shadow(0 0 10px rgba(229, 9, 20, 0.3));
+.score-bar-fill {
+    height: 8px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #1a1a2e, #4a6cf7);
 }
-.selected-movie .info h3 {
-    font-size: 1.4rem !important;
-    font-weight: 700 !important;
-    color: #ffffff !important;
+
+/* ── Selected Movie Banner ── */
+.selected-banner {
+    background: linear-gradient(135deg, #1a1a2e 0%, #2d3a6e 100%);
+    border-radius: 12px;
+    padding: 2rem;
+    color: #fff;
+    margin-bottom: 1.5rem;
+}
+.selected-banner h2 {
+    color: #fff !important;
     margin: 0 !important;
+    font-size: 1.6rem !important;
 }
-.selected-movie .info p {
-    color: #888 !important;
-    font-size: 0.9rem !important;
-    margin: 0.25rem 0 0 0 !important;
+.selected-banner p {
+    color: rgba(255,255,255,0.7) !important;
+    margin: 0.3rem 0 0 0 !important;
 }
-
-/* ── Buttons ── */
-.stButton > button {
-    background: linear-gradient(135deg, #e50914 0%, #b20710 100%) !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 10px !important;
-    font-weight: 700 !important;
-    font-size: 1rem !important;
-    padding: 0.6rem 2rem !important;
-    transition: all 0.3s ease !important;
-    letter-spacing: 0.5px;
+.selected-banner .genre-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin-top: 0.8rem;
 }
-.stButton > button:hover {
-    box-shadow: 0 6px 25px rgba(229, 9, 20, 0.4) !important;
-    transform: translateY(-2px);
-}
-.stButton > button:active {
-    transform: translateY(0);
-}
-
-/* ── Inputs ── */
-.stTextInput > div > div > input,
-.stSelectbox > div > div > div {
-    background-color: #141422 !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    border-radius: 10px !important;
-    color: #ffffff !important;
-}
-.stTextInput > div > div > input:focus,
-.stSelectbox > div > div > div:focus {
-    border-color: rgba(229, 9, 20, 0.5) !important;
-    box-shadow: 0 0 0 2px rgba(229, 9, 20, 0.1) !important;
-}
-.stSlider > div > div > div > div {
-    background-color: #e50914 !important;
-}
-
-/* ── Footer ── */
-.cinema-footer {
-    text-align: center;
-    padding: 2rem 0 1rem;
-    color: #444;
-    font-size: 0.8rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    margin-top: 3rem;
-}
-.cinema-footer span {
-    color: #e50914;
-}
-
-/* ── Empty State ── */
-.empty-state {
-    text-align: center;
-    padding: 4rem 2rem;
-    color: #555;
-}
-.empty-state .icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-.empty-state h3 {
-    color: #666 !important;
-    font-weight: 600 !important;
-}
-.empty-state p {
-    color: #444 !important;
-}
-
-/* ── Spinner customization ── */
-.stSpinner > div {
-    border-top-color: #e50914 !important;
+.selected-banner .chip {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
 }
 </style>
 """,
@@ -311,154 +147,201 @@ st.markdown(
 )
 
 # ---------------------------
-# Load Data
+# Data Functions
 # ---------------------------
 @st.cache_data
-def load_data():
-    df = pd.read_csv(DATA_PATH)
+def load_data(path):
+    df = pd.read_csv(path)
     df["genres_clean"] = df["genres"].str.replace("|", " ", regex=False)
     return df
 
 
 @st.cache_resource
-def build_similarity(df):
+def build_similarity(_df):
     tfidf = TfidfVectorizer()
-    tfidf_matrix = tfidf.fit_transform(df["genres_clean"])
+    tfidf_matrix = tfidf.fit_transform(_df["genres_clean"])
     return cosine_similarity(tfidf_matrix)
 
 
-df = load_data()
-similarity_matrix = build_similarity(df)
-movie_list = sorted(df["title"].tolist())
+def get_recommendations(df, sim_matrix, movie_title, n=5):
+    idx = df[df["title"] == movie_title].index[0]
+    scores = list(enumerate(sim_matrix[idx]))
+    scores = sorted(scores, key=lambda x: x[1], reverse=True)[1 : n + 1]
+    return scores
+
 
 # ---------------------------
-# Hero Banner
+# Sidebar
 # ---------------------------
-st.markdown(
-    """
-<div class="hero">
-    <h1>🎬 Movie Recommender</h1>
-    <p>Discover your next favorite film. Powered by <span class="accent">genre intelligence</span>.</p>
-</div>
-""",
-    unsafe_allow_html=True,
-)
+with st.sidebar:
+    st.image("https://img.icons8.com/fluency/96/movie.png", width=64)
+    st.title("Movie Recommender")
+    st.caption("Genre-based recommendation engine")
+    st.divider()
+
+    st.markdown("### 📂 Dataset")
+    data_path = st.text_input(
+        "movies.csv path",
+        value=r"E:\All DataSets\movies.csv",
+        help="Full path to your movies.csv file",
+    )
+
+    st.divider()
+    st.markdown("### ℹ️ About")
+    st.caption("Uses TF-IDF vectorization on movie genres to find similar films via cosine similarity.")
+    st.caption("CSV must have `title` and `genres` columns.")
 
 # ---------------------------
-# Search & Controls
+# Load Data
 # ---------------------------
-st.markdown('<div class="search-section">', unsafe_allow_html=True)
+df = None
+similarity_matrix = None
+movie_list = []
 
-col1, col2, col3 = st.columns([3, 2, 1])
-
-with col1:
-    search_query = st.text_input("🔍", placeholder="Search for a movie...", label_visibility="collapsed")
-
-if search_query:
-    filtered_movies = [m for m in movie_list if search_query.lower() in m.lower()]
+if data_path and os.path.isfile(data_path):
+    try:
+        df = load_data(data_path)
+        similarity_matrix = build_similarity(df)
+        movie_list = sorted(df["title"].tolist())
+        all_genres = sorted(set(g.strip() for gs in df["genres"] for g in gs.split("|")))
+    except Exception as e:
+        st.error(f"Error loading dataset: {e}")
 else:
-    filtered_movies = movie_list
-
-with col2:
-    if filtered_movies:
-        selected_movie = st.selectbox("Select a movie", filtered_movies, label_visibility="collapsed")
-    else:
-        st.warning("No movies found matching your search.")
-        selected_movie = None
-
-with col3:
-    num_recs = st.slider("Recs", 3, 10, 5, label_visibility="collapsed")
-    recommend_clicked = st.button("🎬  Get Recommendations", use_container_width=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
+    st.warning("Enter a valid path to `movies.csv` in the sidebar to get started.")
 
 # ---------------------------
-# Results
+# Main App (Tabs)
 # ---------------------------
-if recommend_clicked and selected_movie:
-    idx = df[df["title"] == selected_movie].index[0]
-    scores = list(enumerate(similarity_matrix[idx]))
-    scores = sorted(scores, key=lambda x: x[1], reverse=True)
-    top_scores = scores[1 : num_recs + 1]
+if df is not None:
+    tab_discover, tab_analytics, tab_browse = st.tabs(["🎬 Discover", "📊 Analytics", "📋 Browse Data"])
 
-    # Selected movie display
-    movie_genres = df.iloc[idx]["genres"].split("|")
-    genres_html = "".join(
-        f'<span class="genre-tag">{g.strip()}</span>' for g in movie_genres[:5]
-    )
+    # ═══════════════════════════════
+    # TAB 1: DISCOVER
+    # ═══════════════════════════════
+    with tab_discover:
+        st.subheader("Find Movies Like Your Favorites")
 
-    st.markdown(
-        f"""
-    <div class="selected-movie">
-        <div class="icon">🎬</div>
-        <div class="info">
-            <h3>{selected_movie}</h3>
-            <p>Based on genres: {genres_html}</p>
-        </div>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+        col_search, col_count = st.columns([3, 1])
+        with col_search:
+            search_query = st.text_input("🔍 Search movies", placeholder="Type a movie name...")
+        with col_count:
+            num_recs = st.slider("How many?", 3, 10, 5)
 
-    # Section header
-    st.markdown(
-        f"""
-    <div class="section-header">
-        <h2>Recommended For You</h2>
-        <div class="line"></div>
-        <div class="count">{len(top_scores)} movies</div>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
+        if search_query:
+            filtered_movies = [m for m in movie_list if search_query.lower() in m.lower()]
+        else:
+            filtered_movies = movie_list
 
-    # Movie cards grid
-    cols = st.columns(3)
-    for display_idx, (movie_idx, score) in enumerate(top_scores):
-        col = cols[display_idx % 3]
-        movie = df.iloc[movie_idx]
-        match_pct = round(score * 100)
-        movie_genres = movie["genres"].split("|")[:4]
-        genres_html = "".join(
-            f'<span class="genre-tag">{g.strip()}</span>' for g in movie_genres
-        )
+        if filtered_movies:
+            selected_movie = st.selectbox("Pick a movie", filtered_movies, index=0)
+        else:
+            st.info("No movies match your search.")
+            selected_movie = None
 
-        with col:
+        if selected_movie:
+            idx = df[df["title"] == selected_movie].index[0]
+            movie_genres = df.iloc[idx]["genres"].split("|")
+            genres_html = "".join(f'<span class="chip">{g.strip()}</span>' for g in movie_genres)
+
             st.markdown(
                 f"""
-            <div class="movie-card">
-                <div class="rank">#{display_idx + 1}</div>
-                <div class="title">{movie['title']}</div>
-                <div class="score-badge">⚡ {match_pct}% match</div>
-                <div class="genres">{genres_html}</div>
+            <div class="selected-banner">
+                <h2>🎬 {selected_movie}</h2>
+                <p>Genres</p>
+                <div class="genre-chips">{genres_html}</div>
             </div>
             """,
                 unsafe_allow_html=True,
             )
 
-elif recommend_clicked and not selected_movie:
-    st.warning("Please select a movie first!")
+        if st.button("Get Recommendations", type="primary", use_container_width=True) and selected_movie:
+            scores = get_recommendations(df, similarity_matrix, selected_movie, num_recs)
+
+            st.markdown(f"### Top {len(scores)} Similar Movies")
+
+            for rank, (movie_idx, score) in enumerate(scores, 1):
+                movie = df.iloc[movie_idx]
+                match_pct = round(score * 100)
+                movie_genres = movie["genres"].split("|")[:5]
+                genres_html = "".join(f'<span class="chip">{g.strip()}</span>' for g in movie_genres)
+
+                st.markdown(
+                    f"""
+                <div class="result-card">
+                    <span class="rank-badge">#{rank}</span>
+                    <div class="movie-title">{movie['title']}</div>
+                    <div class="genre-chips">{genres_html}</div>
+                    <div class="score-bar-bg">
+                        <div class="score-bar-fill" style="width: {match_pct}%;"></div>
+                    </div>
+                    <div style="text-align:right; font-size:0.8rem; color:#888; margin-top:0.3rem;">
+                        {match_pct}% match
+                    </div>
+                </div>
+                """,
+                    unsafe_allow_html=True,
+                )
+
+        elif selected_movie is None:
+            st.info("Select a movie above to get recommendations.")
+
+    # ═══════════════════════════════
+    # TAB 2: ANALYTICS
+    # ═══════════════════════════════
+    with tab_analytics:
+        st.subheader("Dataset Overview")
+
+        m1, m2, m3 = st.columns(3)
+        m1.metric("Total Movies", f"{len(df):,}")
+        m2.metric("Unique Genres", len(all_genres))
+        m3.metric("Avg Genres/Movie", round(df["genres"].str.split("|").str.len().mean(), 1))
+
+        st.divider()
+        st.markdown("### Genre Distribution")
+
+        genre_counts = (
+            df["genres"].str.split("|").explode().str.strip().value_counts().head(20)
+        )
+
+        st.bar_chart(genre_counts, horizontal=True, height=400, color="#1a1a2e")
+
+        st.divider()
+        st.markdown("### Top 10 Most Common Genre Combinations")
+        top_combos = df["genres"].value_counts().head(10)
+        for combo, count in top_combos.items():
+            st.markdown(f"**{combo}** — {count} movies")
+
+    # ═══════════════════════════════
+    # TAB 3: BROWSE DATA
+    # ═══════════════════════════════
+    with tab_browse:
+        st.subheader("Full Dataset")
+
+        browse_search = st.text_input("🔍 Filter by title", placeholder="Search...", key="browse_search")
+        if browse_search:
+            display_df = df[df["title"].str.contains(browse_search, case=False, na=False)]
+        else:
+            display_df = df
+
+        st.dataframe(
+            display_df[["title", "genres"]].reset_index(drop=True),
+            use_container_width=True,
+            height=500,
+        )
+
+        st.caption(f"Showing {len(display_df)} of {len(df)} movies")
 
 else:
-    st.markdown(
-        """
-    <div class="empty-state">
-        <div class="icon">🍿</div>
-        <h3>Your next movie awaits</h3>
-        <p>Search for a movie above and click "Get Recommendations" to discover similar films.</p>
-    </div>
-    """,
-        unsafe_allow_html=True,
-    )
-
-# ---------------------------
-# Footer
-# ---------------------------
-st.markdown(
-    """
-<div class="cinema-footer">
-    Built with <span>❤</span> using Streamlit &bull; TF-IDF Genre Intelligence
-</div>
-""",
-    unsafe_allow_html=True,
-)
+    # No data loaded — show empty state
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    with col2:
+        st.image("https://img.icons8.com/fluency/150/movie.png", width=100)
+        st.markdown("### Movie Recommender")
+        st.info("Configure your dataset path in the **sidebar** to get started.")
+        st.markdown("""
+        **Requirements:**
+        - A `movies.csv` file with at least:
+          - `title` — Movie name
+          - `genres` — Pipe-separated genres (e.g., `Action|Adventure|Sci-Fi`)
+        """)

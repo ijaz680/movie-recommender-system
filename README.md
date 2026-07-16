@@ -12,7 +12,7 @@ A cinematic movie recommendation app built with Streamlit. Pick a movie you love
 
 ## Tech Stack
 
-- **Python 3.11**
+- **Python 3.10**
 - **Streamlit** — Web framework
 - **pandas** — Data manipulation
 - **scikit-learn** — TF-IDF vectorization & cosine similarity
@@ -64,7 +64,7 @@ movieRecommender/
 ├── main.py               # Main application
 ├── requirements.txt      # Python dependencies
 ├── pyproject.toml        # Project metadata
-├── .python-version       # Python version (3.11)
+├── .python-version       # Python version (3.10)
 └── README.md             # This file
 ```
 
