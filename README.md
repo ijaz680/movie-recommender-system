@@ -1,81 +1,187 @@
-# 🎬 Movie Recommender
+# 🎬 Movie Recommender System
 
-A cinematic movie recommendation app built with Streamlit. Pick a movie you love and discover similar films powered by TF-IDF vectorization and cosine similarity.
+A modern **Movie Recommendation System** built with **Python** and **Streamlit** that recommends movies based on genre similarity using **TF-IDF Vectorization** and **Cosine Similarity**. Simply select a movie and discover similar titles through a clean, Netflix-inspired interface.
 
-## Features
+---
 
-- **Cinematic Dark UI** — Netflix/IMDb-inspired design with gradient backgrounds and glow effects
-- **Smart Search** — Instantly filter through thousands of movies
-- **Genre-Based Recommendations** — Uses TF-IDF and cosine similarity on movie genres
-- **Responsive Card Grid** — Beautiful movie cards with match scores and genre tags
-- **Customizable Results** — Choose how many recommendations you want (3–10)
+## 📌 Features
 
-## Tech Stack
+* 🎬 Smart movie recommendations
+* 🔍 Fast movie search
+* 🧠 TF-IDF Vectorization for feature extraction
+* 📊 Cosine Similarity recommendation engine
+* 🌙 Modern dark-themed Streamlit UI
+* 📱 Responsive movie cards
+* 🎯 Adjustable number of recommendations (3–10)
+* ⚡ Fast and lightweight application
 
-- **Python 3.10**
-- **Streamlit** — Web framework
-- **pandas** — Data manipulation
-- **scikit-learn** — TF-IDF vectorization & cosine similarity
+---
 
-## Installation
+## 🛠️ Tech Stack
 
-### Using `uv` (recommended)
+* **Python 3.10+**
+* **Streamlit**
+* **Pandas**
+* **Scikit-learn**
+* **NumPy**
 
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/movieRecommender.git
-cd movieRecommender
+---
 
-# Install dependencies
-uv sync
+## 📂 Project Structure
 
-# Run the app
-uv run streamlit run main.py
+```text
+movie-recommender-system/
+│
+├── .streamlit/
+│   └── config.toml
+│
+├── movies.csv
+├── main.py
+├── requirements.txt
+├── README.md
+└── LICENSE
 ```
 
-### Using `pip`
+---
+
+## 🚀 Installation
+
+### 1. Clone the Repository
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/movieRecommender.git
-cd movieRecommender
+git clone https://github.com/ijaz680/movie-recommender-system.git
+```
 
-# Install dependencies
+### 2. Navigate to the Project Folder
+
+```bash
+cd movie-recommender-system
+```
+
+### 3. Create a Virtual Environment (Optional)
+
+**Windows**
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+**macOS/Linux**
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+```
+
+### 4. Install Dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-# Run the app
+### 5. Run the Application
+
+```bash
 streamlit run main.py
 ```
 
-## Usage
+---
 
-1. Launch the app with the command above
-2. Use the **search bar** in the hero section to find a movie by title
-3. Select a movie from the dropdown
-4. Adjust the number of recommendations using the slider
-5. Click **Get Recommendations** to discover similar movies
+## 💻 Usage
 
-## Project Structure
+1. Launch the Streamlit application.
+2. Search or select your favorite movie.
+3. Choose the number of recommendations.
+4. Click **Get Recommendations**.
+5. Explore similar movies instantly.
 
+---
+
+## 📊 Recommendation Method
+
+The recommendation engine works by:
+
+* Cleaning movie genre data
+* Converting genres into TF-IDF vectors
+* Computing similarity using Cosine Similarity
+* Returning the most similar movies based on genre
+
+---
+
+## 📁 Dataset
+
+The project uses a **movies.csv** dataset containing at least the following columns:
+
+| Column | Description                                  |
+| ------ | -------------------------------------------- |
+| title  | Movie title                                  |
+| genres | Movie genres (e.g., Action|Adventure|Sci-Fi) |
+
+Example:
+
+```csv
+title,genres
+Avatar,Action|Adventure|Sci-Fi
+Inception,Action|Sci-Fi|Thriller
+Titanic,Drama|Romance
 ```
-movieRecommender/
-├── .streamlit/
-│   └── config.toml      # Streamlit dark theme config
-├── main.py               # Main application
-├── requirements.txt      # Python dependencies
-├── pyproject.toml        # Project metadata
-├── .python-version       # Python version (3.10)
-└── README.md             # This file
+
+---
+
+## 📸 Application Preview
+
+> Add screenshots after running the application.
+
+```text
+README.md
+images/
+    screenshot.png
 ```
 
-## Dataset
+Then add:
 
-The app expects a `movies.csv` file with at least the following columns:
-- `title` — Movie title
-- `genres` — Pipe-separated genres (e.g., `Action|Adventure|Sci-Fi`)
+```markdown
+![Movie Recommender](images/screenshot.png)
+```
 
-Update the `DATA_PATH` variable in `main.py` to point to your dataset location.
+---
 
-## License
+## 🔮 Future Improvements
 
-MIT
+* Movie posters using TMDB API
+* Content-based recommendations using movie overview
+* Hybrid recommendation system
+* User authentication
+* Favorite movies list
+* Watchlist support
+* Movie ratings integration
+* Deploy on Streamlit Cloud
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes.
+4. Push to your branch.
+5. Open a Pull Request.
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
+
+---
+
+## 👨‍💻 Author
+
+**Ijaz Ur Rahman**
+
+* GitHub: https://github.com/ijaz680
+
+If you found this project helpful, consider giving it a ⭐ on GitHub.
