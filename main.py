@@ -182,7 +182,7 @@ with st.sidebar:
     st.markdown("### 📂 Dataset")
     data_path = st.text_input(
         "movies.csv path",
-        value=r"E:\All DataSets\movies.csv",
+        value="movies.csv",
         help="Full path to your movies.csv file",
     )
 
